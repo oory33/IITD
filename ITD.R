@@ -1,4 +1,4 @@
-setwd("/Users/ryo/Documents/R/R_study/IITD")
+cwd <- getwd()
 source("gammatone.R")
 library(tuneR)
 
@@ -28,11 +28,13 @@ pwd <- sprintf("%s", getwd())
 fnames <- list.files(path = pwd, pattern = "*.wav")
 
 for (fname in fnames) {
+  setwd(paste(cwd, "input", sep = "/"))
   dat <- readWave(fname)
 
   sigl <- dat@left
   sigr <- dat@right
   srate <- dat@samp.rate
+  dur <- length(sigl) / srate
   for (filfc in filfcs) {
     winln <- 2 # msec
     interval <- 4 # msec
@@ -79,15 +81,14 @@ for (fname in fnames) {
     }
     assign(sprintf("IITD_%s", filfc), IITD)
   }
-  t <- seq(0, 8, length = length(IITD))
-  setwd("/Users/ryo/Documents/R/R_study/IITD/output")
+  t <- seq(0, dur, length = length(IITD))
+  setwd(paste(cwd, "output", sep = "/"))
   png(sprintf("%s.png", substring(fname, 1, (nchar(fname) - 4))), width = 1080, height = 1080)
   par(mgp = c(2.3, 0.7, 0))
-  plot(t, IITD_450, type = "p", xlim = c(0, 2), ylab = "ITD(µsec)", xlab = "time(sec)", cex.lab = 1.7, cex.axis = 1.5, ylim = ylimit)
+  plot(t, IITD_450, type = "p", xlim = c(0, 4), ylab = "ITD(µsec)", xlab = "time(sec)", cex.lab = 1.7, cex.axis = 1.5, ylim = ylimit)
   par(new = T)
-  plot(t, IITD_600, type = "p", xlim = c(0, 2), ylab = "", xlab = "", cex.lab = 1.7, cex.axis = 1.5, ylim = ylimit, pch = 17)
+  plot(t, IITD_600, type = "p", xlim = c(0, 4), ylab = "", xlab = "", cex.lab = 1.7, cex.axis = 1.5, ylim = ylimit, pch = 17)
   par(new = T)
-  plot(t, IITD_750, type = "p", xlim = c(0, 2), ylab = "", xlab = "", cex.lab = 1.7, cex.axis = 1.5, ylim = ylimit, pch = 4)
+  plot(t, IITD_750, type = "p", xlim = c(0, 4), ylab = "", xlab = "", cex.lab = 1.7, cex.axis = 1.5, ylim = ylimit, pch = 4)
   dev.off()
-  setwd("/Users/ryo/Documents/R/R_study/IITD/input")
-}
+  }
