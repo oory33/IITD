@@ -1,6 +1,8 @@
 cwd <- getwd()
 source("gammatone.R")
 library(tuneR)
+library(ggplot2)
+library(tidyverse)
 
 
 # len <- 1
@@ -83,12 +85,36 @@ for (fname in fnames) {
   }
   t <- seq(0, dur, length = length(IITD))
   setwd(paste(cwd, "output", sep = "/"))
-  png(sprintf("%s.png", substring(fname, 1, (nchar(fname) - 4))), width = 1080, height = 1080)
-  par(mgp = c(2.3, 0.7, 0))
-  plot(t, IITD_450, type = "p", xlim = c(0, 4), ylab = "ITD(µsec)", xlab = "time(sec)", cex.lab = 1.7, cex.axis = 1.5, ylim = ylimit)
-  par(new = T)
-  plot(t, IITD_600, type = "p", xlim = c(0, 4), ylab = "", xlab = "", cex.lab = 1.7, cex.axis = 1.5, ylim = ylimit, pch = 17)
-  par(new = T)
-  plot(t, IITD_750, type = "p", xlim = c(0, 4), ylab = "", xlab = "", cex.lab = 1.7, cex.axis = 1.5, ylim = ylimit, pch = 4)
-  dev.off()
-  }
+
+  data <- data.frame(IITD_450, IITD_600, IITD_750)
+  data_long <- data %>%
+    gather(key = "fs", value = "IITD", IITD_450, IITD_600, IITD_750)
+  data_long$fs <- gsub("IITD_", "", data_long$fs)
+  data_long$t <- rep(t, 3)
+
+  p <- ggplot(data_long, aes(x = t, y = IITD)) +
+    geom_point(aes(fill = fs), size = 3, color = "black", shape = 21) +
+    scale_fill_manual(values = c("black", "gray", "white")) +
+    labs(x = "Time (sec)", y = "ITD (µsec)", fill = "Centre\nFrequency\n(Hz)") +
+    theme_bw() +
+    xlim(0, 1) +
+    theme(
+      axis.text = element_text(size = 21),
+      axis.title = element_text(size = 24),
+      legend.position = "right",
+      legend.text = element_text(size = 21),
+      legend.title = element_text(size = 21),
+    )
+
+  ggsave(sprintf("%s.png", substring(fname, 1, (nchar(fname) - 4))), plot = p, width = 10, height = 8, dpi = 300)
+
+  # png(sprintf("%s.png", substring(fname, 1, (nchar(fname) - 4))), width = 1080, height = 1080)
+  # par(mgp = c(2.3, 0.7, 0))
+  # plot(t, IITD_450, type = "p", xlim = c(0, 4), ylab = "ITD(µsec)", xlab = "time(sec)", cex.lab = 1.7, cex.axis = 1.5, ylim = ylimit)
+  # par(new = T)
+  # plot(t, IITD_600, type = "p", xlim = c(0, 4), ylab = "", xlab = "", cex.lab = 1.7, cex.axis = 1.5, ylim = ylimit, pch = 17)
+  # par(new = T)
+  # plot(t, IITD_750, type = "p", xlim = c(0, 4), ylab = "", xlab = "", cex.lab = 1.7, cex.axis = 1.5, ylim = ylimit, pch = 4)
+  # dev.off()
+}
+setwd(cwd)
